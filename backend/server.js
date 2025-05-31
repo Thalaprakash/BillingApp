@@ -1,86 +1,189 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
-const app = express();
+const Invoice = require('./models/Invoice');
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect('mongodb://localhost:27017/authDB', {
+// MongoDB Connect
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-});
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB connection failed:', err));
 
-// Signup route
+// SIGNUP route
 app.post('/signup', async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, phone, password, role } = req.body;
+
+  if (!username || !email || !phone || !password) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
   try {
-    // Hash the password
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email or phone already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const newUser = new User({ username, email, password: hashedPassword, role, active: true });
+
+    const newUser = new User({
+      username,
+      email,
+      phone,
+      password: hashedPassword,
+      role: role || 'user',
+      active: true,
+    });
+
     await newUser.save();
-    res.status(201).json({ message: 'User created successfully' });
+
+    // Return user data without password
+    const userToReturn = {
+      _id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+      phone: newUser.phone,
+      role: newUser.role,
+      active: newUser.active,
+    };
+
+    res.status(201).json({ message: 'User created successfully', user: userToReturn });
   } catch (err) {
-    res.status(400).json({ error: 'Signup failed' });
+    console.error(err);
+    res.status(500).json({ message: 'Signup failed' });
   }
 });
 
-// Login route
+
+// Login Route
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    if (!user.active) {
+      return res.status(403).json({ message: 'Your account is deactivated. Contact admin.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Return user data except password
+    const userToReturn = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      active: user.active,
+    };
+
+    res.json({ message: 'Login successful', user: userToReturn });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+// CREATE INVOICE
+app.post('/invoices', async (req, res) => {
+  const { userId, amount, description } = req.body;
+
+  if (!userId || !amount || !description) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user || !user.active) {
+      return res.status(403).json({ message: 'Invalid or deactivated user' });
+    }
+
+    const invoice = new Invoice({ userId, amount, description });
+    await invoice.save();
+    res.status(201).json({ message: 'Invoice created', invoice });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to create invoice' });
+  }
+});
+
+// GET INVOICES FOR LOGGED-IN USER (userId passed in request body)
+app.post('/my-invoices', async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'userId is required' });
+  }
+
+  try {
+    const invoices = await Invoice.find({ userId });
+    res.json(invoices);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch invoices' });
+  }
+});
+
+// FORGOT PASSWORD (simplified)
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
   const user = await User.findOne({ email });
-  
-  if (user && await bcrypt.compare(password, user.password)) {
-    res.json({
-      message: 'Login successful',
-      user: { email: user.email, role: user.role, _id: user._id },
-    });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
+
+  if (!user) {
+    return res.status(400).json({ message: 'No user found with this email' });
   }
+
+  // Normally send email here - for now just mock success
+  res.status(200).json({ message: 'Password reset link sent (mock)' });
 });
 
-// Get all users route (only accessible to admin)
+// GET ALL USERS (Admin only)
 app.get('/users', async (req, res) => {
-  const users = await User.find();
-  res.json(users);
-});
-
-// Activate user
-app.patch('/activate/:userId', async (req, res) => {
-  const { userId } = req.params;
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    user.active = true;
-    await user.save();
-    res.json({ message: 'User activated successfully' });
+    const users = await User.find().select('-password');
+    res.json(users);
   } catch (err) {
-    res.status(400).json({ message: 'Failed to activate user' });
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
 
-// Deactivate user
-app.patch('/deactivate/:userId', async (req, res) => {
-  const { userId } = req.params;
+// TOGGLE USER ACTIVE/INACTIVE (Admin only)
+app.patch('/toggle-user/:id', async (req, res) => {
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    user.active = false;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.active = !user.active;
     await user.save();
-    res.json({ message: 'User deactivated successfully' });
+
+    res.json({ message: 'User status updated', user });
   } catch (err) {
-    res.status(400).json({ message: 'Failed to deactivate user' });
+    console.error(err);
+    res.status(500).json({ message: 'Failed to update user' });
   }
 });
 
-// Start the server
-app.listen(5000, () => console.log('Server started on port 5000'));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
