@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+
 const User = require('./models/User');
 const Invoice = require('./models/Invoice');
 
@@ -10,13 +12,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connect
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB connection failed:', err));
+// MongoDB Connect (no deprecated options)
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection failed:', err));
 
 // SIGNUP route
 app.post('/signup', async (req, res) => {
@@ -45,7 +44,6 @@ app.post('/signup', async (req, res) => {
 
     await newUser.save();
 
-    // Return user data without password
     const userToReturn = {
       _id: newUser._id,
       username: newUser.username,
@@ -61,7 +59,6 @@ app.post('/signup', async (req, res) => {
     res.status(500).json({ message: 'Signup failed' });
   }
 });
-
 
 // Login Route
 app.post('/login', async (req, res) => {
@@ -88,7 +85,6 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Return user data except password
     const userToReturn = {
       _id: user._id,
       username: user.username,
@@ -128,7 +124,7 @@ app.post('/invoices', async (req, res) => {
   }
 });
 
-// GET INVOICES FOR LOGGED-IN USER (userId passed in request body)
+// GET INVOICES FOR LOGGED-IN USER
 app.post('/my-invoices', async (req, res) => {
   const { userId } = req.body;
 
@@ -145,7 +141,7 @@ app.post('/my-invoices', async (req, res) => {
   }
 });
 
-// FORGOT PASSWORD (simplified)
+// FORGOT PASSWORD (Mock)
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -154,7 +150,6 @@ app.post('/forgot-password', async (req, res) => {
     return res.status(400).json({ message: 'No user found with this email' });
   }
 
-  // Normally send email here - for now just mock success
   res.status(200).json({ message: 'Password reset link sent (mock)' });
 });
 
@@ -185,5 +180,14 @@ app.patch('/toggle-user/:id', async (req, res) => {
   }
 });
 
+// Serve frontend (Vue/React)
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
