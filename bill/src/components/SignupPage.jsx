@@ -21,7 +21,7 @@ export default function SignupPage({ setUser }) {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/signup', form);
+      const res = await axios.post('http://localhost:3000/signup', form);
       const userData = res.data.user;
 
       if (userData) {
