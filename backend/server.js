@@ -9,15 +9,17 @@ const User = require('./models/User');
 const Invoice = require('./models/Invoice');
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connect (no deprecated options)
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection failed:', err));
 
-// SIGNUP route
+// --- SIGNUP route ---
 app.post('/signup', async (req, res) => {
   const { username, email, phone, password, role } = req.body;
 
@@ -60,7 +62,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Login Route
+// --- LOGIN route ---
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -101,7 +103,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// CREATE INVOICE
+// --- CREATE INVOICE ---
 app.post('/invoices', async (req, res) => {
   const { userId, amount, description } = req.body;
 
@@ -117,6 +119,7 @@ app.post('/invoices', async (req, res) => {
 
     const invoice = new Invoice({ userId, amount, description });
     await invoice.save();
+
     res.status(201).json({ message: 'Invoice created', invoice });
   } catch (err) {
     console.error(err);
@@ -124,24 +127,7 @@ app.post('/invoices', async (req, res) => {
   }
 });
 
-// GET INVOICES FOR LOGGED-IN USER
-app.post('/my-invoices', async (req, res) => {
-  const { userId } = req.body;
-
-  if (!userId) {
-    return res.status(400).json({ message: 'userId is required' });
-  }
-
-  try {
-    const invoices = await Invoice.find({ userId });
-    res.json(invoices);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to fetch invoices' });
-  }
-});
-
-// FORGOT PASSWORD (Mock)
+// --- FORGOT PASSWORD (mock) ---
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -150,10 +136,12 @@ app.post('/forgot-password', async (req, res) => {
     return res.status(400).json({ message: 'No user found with this email' });
   }
 
+  // Here you can add real email sending logic later
+
   res.status(200).json({ message: 'Password reset link sent (mock)' });
 });
 
-// GET ALL USERS (Admin only)
+// --- GET ALL USERS (Admin only) ---
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -164,7 +152,7 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// TOGGLE USER ACTIVE/INACTIVE (Admin only)
+// --- TOGGLE USER ACTIVE/INACTIVE (Admin only) ---
 app.patch('/toggle-user/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -184,10 +172,11 @@ app.patch('/toggle-user/:id', async (req, res) => {
 const distPath = path.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
+// Catch-all route to serve frontend index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
