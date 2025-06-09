@@ -6,28 +6,34 @@ const AdminPage = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
+  // Fetch all users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  // Fetch users from backend
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/users');
+      const res = await axios.get('http://localhost:3001/api/auth/users');
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch users:', err);
+      alert('Failed to load users');
     }
   };
 
+  // Toggle user active/inactive status
   const toggleUserStatus = async (id) => {
     try {
-      await axios.patch(`http://localhost:5000/toggle-user/${id}`);
-      fetchUsers(); // Refresh after toggle
+      await axios.patch(`http://localhost:3001/api/auth/toggle-user/${id}`);
+      fetchUsers(); // Refresh list after update
     } catch (err) {
       console.error('Failed to toggle user status:', err);
+      alert('Failed to update user status');
     }
   };
 
+  // Logout and redirect to login page
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/login');
@@ -39,7 +45,9 @@ const AdminPage = () => {
         <h1 style={styles.heading}>Admin Dashboard</h1>
         <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
       </div>
+
       <h2 style={styles.subHeading}>User Management</h2>
+
       <table style={styles.table}>
         <thead>
           <tr>
@@ -51,9 +59,10 @@ const AdminPage = () => {
             <th style={styles.th}>Action</th>
           </tr>
         </thead>
+
         <tbody>
           {users.map(user => (
-            <tr key={user._id} style={styles.row}>
+            <tr key={user._id}>
               <td style={styles.td}>{user.username}</td>
               <td style={styles.td}>{user.email}</td>
               <td style={styles.td}>{user.phone}</td>
@@ -65,7 +74,7 @@ const AdminPage = () => {
                 <button
                   style={{
                     ...styles.button,
-                    backgroundColor: user.active ? '#dc3545' : '#28a745'
+                    backgroundColor: user.active ? '#dc3545' : '#28a745',
                   }}
                   onClick={() => toggleUserStatus(user._id)}
                 >
@@ -127,9 +136,6 @@ const styles = {
   td: {
     border: '1px solid #dee2e6',
     padding: '12px',
-  },
-  row: {
-    backgroundColor: '#fff',
   },
   button: {
     padding: '8px 12px',
