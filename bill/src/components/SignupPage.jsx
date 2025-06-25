@@ -1,3 +1,4 @@
+  GNU nano 7.2                                                                                                                                                                                                                            SignupPage.jsx                                                                                                                                                                                                                                      
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -21,7 +22,11 @@ export default function SignupPage({ setUser }) {
     }
 
     try {
-      const res = await axios.post('https://enterprisesmdu.com/api/auth/signup', form);
+       const res = await axios.post('https://enterprisesmdu.com/api/auth/signup', form, {
+      withCredentials: true,  // <== Added this line
+    });
+
+
       const userData = res.data.user;
 
       if (userData) {
@@ -47,7 +52,6 @@ export default function SignupPage({ setUser }) {
       alert(error.response?.data?.message || 'Signup failed');
     }
   };
-
   return (
     <div style={styles.container}>
       <div style={styles.overlay}></div>
