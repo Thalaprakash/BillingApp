@@ -21,7 +21,7 @@ export default function SignupPage({ setUser }) {
     }
 
     try {
-      const res = await axios.post('http://localhost:3001/api/auth/signup', form);
+      const res = await axios.post('https://enterprisesmdu.com/api/auth/signup', form);
       const userData = res.data.user;
 
       if (userData) {
