@@ -1,4 +1,3 @@
-  GNU nano 7.2                                                                                                                                             AdminPage.jsx                                                                                                                                                      
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -42,12 +41,11 @@ const AdminPage = () => {
       alert('Failed to update user status');
     }
   };
-  // Logout and redirect to login page
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/login');
   };
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
