@@ -1,3 +1,4 @@
+  GNU nano 7.2                                                                                                                                             AdminPage.jsx                                                                                                                                                      
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -5,16 +6,26 @@ import { useNavigate } from 'react-router-dom';
 const AdminPage = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
-  // Fetch all users on component mount
   useEffect(() => {
+    if (!loggedInUser) {
+      navigate('/login');
+      return;
+    }
+
+    if (loggedInUser.role !== 'admin') {
+      alert('Access Denied. Admins only.');
+      navigate('/');
+      return;
+    }
+
     fetchUsers();
   }, []);
 
-  // Fetch users from backend
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/auth/users');
+      const res = await axios.get('https://enterprisesmdu.com/api/auth/users');
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch users:', err);
@@ -22,17 +33,15 @@ const AdminPage = () => {
     }
   };
 
-  // Toggle user active/inactive status
   const toggleUserStatus = async (id) => {
     try {
-      await axios.patch(`http://localhost:3001/api/auth/toggle-user/${id}`);
-      fetchUsers(); // Refresh list after update
+      await axios.patch(`https://enterprisesmdu.com/api/auth/toggle-user/${id}`);
+      fetchUsers();
     } catch (err) {
       console.error('Failed to toggle user status:', err);
       alert('Failed to update user status');
     }
   };
-
   // Logout and redirect to login page
   const handleLogout = () => {
     localStorage.removeItem('user');
