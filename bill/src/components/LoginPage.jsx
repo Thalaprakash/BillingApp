@@ -1,3 +1,4 @@
+  GNU nano 7.2                                                                                       LoginPage.jsx                                                                                                 
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -5,6 +6,10 @@ import { useNavigate, Link } from 'react-router-dom';
 export default function LoginPage({ setUser }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,7 +20,10 @@ export default function LoginPage({ setUser }) {
     }
 
     try {
-      const res = await axios.post('https://enterprisesmdu.com/api/auth/login', form);
+      const res = await axios.post('https://enterprisesmdu.com/api/auth/login', form, {
+        withCredentials: true,
+      });
+
       const userData = res.data.user;
 
       if (userData) {
