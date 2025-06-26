@@ -26,7 +26,7 @@ const AdminPage = () => {
     try {
       const res = await axios.get('https://enterprisesmdu.com/api/auth/users');
       setUsers(res.data);
-    } catch (err) {
+      } catch (err) {
       console.error('Failed to fetch users:', err);
       alert('Failed to load users');
     }
@@ -48,13 +48,34 @@ const AdminPage = () => {
   };
   return (
     <div style={styles.container}>
+      {/* 🔐 Header */}
       <div style={styles.header}>
         <h1 style={styles.heading}>Admin Dashboard</h1>
         <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
       </div>
 
+      {/* 👤 Logged-In Admin Info */}
+      <div style={styles.loggedInInfoBox}>
+        <h3>Logged-in User Details</h3>
+        <table>
+          <tbody>
+            <tr>
+              <td><strong>Username:</strong></td>
+              <td>{loggedInUser?.username}</td>
+            </tr>
+            <tr>
+              <td><strong>Email:</strong></td>
+              <td>{loggedInUser?.email}</td>
+            </tr>
+            <tr>
+              <td><strong>Role:</strong></td>
+              <td>{loggedInUser?.role}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+       {/* 👥 User Management Table */}
       <h2 style={styles.subHeading}>User Management</h2>
-
       <table style={styles.table}>
         <thead>
           <tr>
@@ -62,11 +83,12 @@ const AdminPage = () => {
             <th style={styles.th}>Email</th>
             <th style={styles.th}>Phone</th>
             <th style={styles.th}>Role</th>
+            <th style={styles.th}>Plan</th>
+            <th style={styles.th}>Expires At</th>
             <th style={styles.th}>Status</th>
             <th style={styles.th}>Action</th>
           </tr>
         </thead>
-
         <tbody>
           {users.map(user => (
             <tr key={user._id}>
@@ -74,6 +96,10 @@ const AdminPage = () => {
               <td style={styles.td}>{user.email}</td>
               <td style={styles.td}>{user.phone}</td>
               <td style={styles.td}>{user.role}</td>
+              <td style={styles.td}>{user.plan}</td>
+              <td style={styles.td}>
+                {user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString() : 'N/A'}
+              </td>
               <td style={{ ...styles.td, color: user.active ? 'green' : 'red' }}>
                 {user.active ? 'Active' : 'Inactive'}
               </td>
@@ -121,6 +147,13 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '14px',
+  },loggedInInfoBox: {
+    backgroundColor: '#ffffff',
+    padding: '16px',
+    borderRadius: '6px',
+    marginBottom: '30px',
+    boxShadow: '0 1px 5px rgba(0,0,0,0.1)',
+    maxWidth: '400px',
   },
   subHeading: {
     fontSize: '20px',

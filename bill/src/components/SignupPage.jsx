@@ -1,4 +1,3 @@
-  GNU nano 7.2                                                                                                                                                                                                                            SignupPage.jsx                                                                                                                                                                                                                                      
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -25,9 +24,7 @@ export default function SignupPage({ setUser }) {
        const res = await axios.post('https://enterprisesmdu.com/api/auth/signup', form, {
       withCredentials: true,  // <== Added this line
     });
-
-
-      const userData = res.data.user;
+const userData = res.data.user;
 
       if (userData) {
         const userId = userData._id || userData.id;
@@ -52,7 +49,7 @@ export default function SignupPage({ setUser }) {
       alert(error.response?.data?.message || 'Signup failed');
     }
   };
-  return (
+return (
     <div style={styles.container}>
       <div style={styles.overlay}></div>
       <div style={styles.formWrapper}>
@@ -78,8 +75,7 @@ export default function SignupPage({ setUser }) {
             type="email"
             placeholder="Email"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
+            onChange={(e) => setForm({ ...form, email: e.target.value })}required
             style={styles.input}
           />
           <input
@@ -131,8 +127,7 @@ const styles = {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(to bottom right, rgba(0,0,20,0.4), rgba(0,0,40,0.7))',
-    zIndex: 1,
+    background: 'linear-gradient(to bottom right, rgba(0,0,20,0.4), rgba(0,0,40,0.7))', zIndex: 1,
   },
   formWrapper: {
     position: 'relative',
@@ -156,8 +151,7 @@ const styles = {
     background: 'rgba(0, 255, 255, 0.1)',
     backdropFilter: 'blur(12px)',
     border: '2px solid rgba(255, 255, 255, 0.25)',
-    display: 'flex',
-    alignItems: 'center',
+    display: 'flex', alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 0 15px rgba(0, 255, 255, 0.5), 0 0 5px rgba(0, 255, 255, 0.2) inset',
     cursor: 'pointer',
@@ -181,8 +175,7 @@ const styles = {
     padding: '12px',
     marginBottom: '15px',
     fontSize: '14px',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '10px',
+    border: '1px solid rgba(255,255,255,0.2)',borderRadius: '10px',
     background: 'rgba(255,255,255,0.1)',
     color: '#fff',
     outline: 'none',
@@ -205,6 +198,7 @@ const styles = {
   link: {
     color: '#00c6ff',
     textDecoration: 'none',
-    fontWeight: '500',
+    fontWeight: '500',   
   },
 };
+

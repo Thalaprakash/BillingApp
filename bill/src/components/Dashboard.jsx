@@ -24,8 +24,9 @@ const Dashboard = () => {
     const fetchUserData = async () => {
       if (user && user._id) {
         try {
-          const res = await axios.get(`http://localhost:5000/users/${user._id}`);
+          const res = await axios.get(`http://147.93.28.207:3001/users/${user._id}`);
           if (res.data) {
+            
             setUser(res.data);
             localStorage.setItem("user", JSON.stringify(res.data));
 
@@ -48,7 +49,7 @@ const Dashboard = () => {
       }
     };
 
-    fetchUserData();
+ fetchUserData();
   }, [user?._id, setUser]);
 
   return (
@@ -75,6 +76,7 @@ const Dashboard = () => {
             🚪 Logout
           </button>
         </header>
+        
         <main style={styles.mainContent}>
           <Outlet />
         </main>
@@ -149,7 +151,7 @@ const styles = {
     alignItems: "center",
   },
   userGreeting: { marginRight: "15px", fontSize: "18px", fontWeight: "bold" },
-  userInitial: {
+   userInitial: {
     display: "inline-block",
     width: "30px",
     height: "30px",
@@ -175,6 +177,7 @@ const styles = {
     flex: 1,
     padding: "40px",
     backgroundColor: "#f7f9fc",
+    
     borderRadius: "12px",
     boxShadow: "inset 0 0 10px #e3e7ed",
     margin: "0 20px 20px 20px",

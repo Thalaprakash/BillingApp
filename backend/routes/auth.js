@@ -1,4 +1,4 @@
-const express = require('express');
+ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -26,7 +26,7 @@ router.post('/signup', async (req, res) => {
       password: hashedPassword,
       role: role || 'user',
       active: true,
-    });
+          });
 
     await newUser.save();
 
@@ -37,6 +37,8 @@ router.post('/signup', async (req, res) => {
       phone: newUser.phone,
       role: newUser.role,
       active: newUser.active,
+      plan: newUser.plan,
+      planExpiresAt: newUser.planExpiresAt,
     };
 
     res.status(201).json({ message: 'User created successfully', user: userToReturn });
@@ -45,7 +47,6 @@ router.post('/signup', async (req, res) => {
     res.status(500).json({ message: 'Signup failed' });
   }
 });
-
 // --- LOGIN ---
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -71,13 +72,15 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const userToReturn = {
+       const userToReturn = {
       _id: user._id,
       username: user.username,
       email: user.email,
       phone: user.phone,
       role: user.role,
       active: user.active,
+      plan: user.plan,
+      planExpiresAt: user.planExpiresAt,
     };
 
     res.json({ message: 'Login successful', user: userToReturn });
@@ -86,6 +89,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error during login' });
   }
 });
+
 
 // --- FORGOT PASSWORD (MOCK) ---
 router.post('/forgot-password', async (req, res) => {
@@ -102,12 +106,40 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(400).json({ message: 'No user found with this email' });
     }
 
-    // Future enhancement: real email sending logic here
+    // Future: implement real email sending logic here
 
     res.status(200).json({ message: 'Password reset link sent (mock)' });
   } catch (err) {
     console.error('Forgot password error:', err);
     res.status(500).json({ message: 'Failed to process password reset' });
+  }
+});
+
+
+// --- GET ALL USERS (Admin only) ---
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    console.error('Fetch users error:', err);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+// --- TOGGLE USER ACTIVE STATUS ---
+router.patch('/toggle-user/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.active = !user.active;
+    await user.save();
+
+    res.json({ message: 'User status updated', user });
+  } catch (err) {
+    console.error('Toggle user error:', err);
+    res.status(500).json({ message: 'Failed to update user' });
   }
 });
 

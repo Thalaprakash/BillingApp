@@ -1,4 +1,3 @@
-  GNU nano 7.2                                                                                       LoginPage.jsx                                                                                                 
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -26,8 +25,7 @@ export default function LoginPage({ setUser }) {
 
       const userData = res.data.user;
 
-      if (userData) {
-        localStorage.setItem('user', JSON.stringify(userData));
+      if (userData) {localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
 
         if (userData.role === 'admin') {
@@ -40,8 +38,7 @@ export default function LoginPage({ setUser }) {
       alert(error.response?.data?.message || 'Login failed');
     }
   };
-
-  return (
+return (
     <div style={styles.container}>
       <div style={styles.overlay}></div>
       <div style={styles.formWrapper}>
@@ -53,8 +50,7 @@ export default function LoginPage({ setUser }) {
           <i className="fas fa-sign-in-alt" style={styles.icon}></i>
         </div>
 
-        <h2 style={styles.heading}>Login</h2>
-        <form onSubmit={handleLogin} style={styles.form}>
+        <h2 style={styles.heading}>Login</h2> <form onSubmit={handleLogin} style={styles.form}>
           <input
             type="email"
             placeholder="Email"
@@ -77,8 +73,7 @@ export default function LoginPage({ setUser }) {
           </p>
         </form>
       </div>
-    </div>
-  );
+    </div> );
 }
 
 const styles = {

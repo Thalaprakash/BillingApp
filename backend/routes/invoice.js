@@ -26,5 +26,4 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Failed to create invoice' });
   }
 });
-
 module.exports = router;

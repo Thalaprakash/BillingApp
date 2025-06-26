@@ -1,4 +1,3 @@
-
 const crypto = require('crypto');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
@@ -27,12 +26,10 @@ exports.resetPassword = async (req, res) => {
   });
 
   if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
-
-  user.password = req.body.password;
+    user.password = req.body.password;
   user.resetToken = undefined;
   user.resetTokenExpires = undefined;
   await user.save();
 
   res.json({ message: 'Password updated' });
 };
-
